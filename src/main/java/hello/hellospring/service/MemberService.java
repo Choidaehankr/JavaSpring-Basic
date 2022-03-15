@@ -23,20 +23,19 @@ public class MemberService {
     public MemberService(MemberRepository memberRepository) {  // DI
         this.memberRepository = memberRepository;
     }
-
+    // join, findMember 기능의 수행 시간을 기록하기 위한 코드.
+    // 아래 join과 findMember는 AOP를 사용하지 않아서 유지보수가 매우 힘듦.
     public Long join(Member member) {
-        // 조건1. 같은 이름이 있으면 안된다.
-        Optional<Member> result = memberRepository.findByName(member.getName());
-        result.ifPresent(m -> {
-            throw new IllegalStateException("이미 존재하는 회원입니다.");
-        });
-//        memberRepository.findByName(member.getName()).
-//                ifPresent(m-> {
-//                    throw new IllegalStateException("이미 존재하는 회원입니다.");
-//        }); 같은 코드
-        // 뭐 ctrl+T해서 위 중복회원 검증 코드를 validateDuplicateMember란 이름으로 축소시켰는데 검색해보자.
+        validateDuplicateMember(member);  // 중복 회원 검증
         memberRepository.save(member);
         return member.getId();
+    }
+
+    private void validateDuplicateMember(Member member) {
+        memberRepository.findByName(member.getName())
+                .ifPresent(m -> {
+                    throw new IllegalStateException("이미 존재하는 회원입니다.");
+                });
     }
 
     public List<Member> findMembers() {
